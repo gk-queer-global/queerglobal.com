@@ -20,7 +20,6 @@ HOST=$2
 : "${CLOUDFLARE_ACCOUNT_ID:?CLOUDFLARE_ACCOUNT_ID is required}"
 : "${CLOUDFLARE_ZONE_ID:?CLOUDFLARE_ZONE_ID is required}"
 API=${CLOUDFLARE_API_URL:-https://api.cloudflare.com/client/v4}
-TARGET="$PROJECT.pages.dev"
 
 cf() {
   local method=$1 path=$2 data=${3:-} resp
@@ -35,6 +34,18 @@ cf() {
 
 ok() { [ "$(jq -r '.success' <<<"$1")" = "true" ]; }
 
+project=$(cf GET "/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects/$PROJECT")
+if ! ok "$project"; then
+  echo "read pages project \"$PROJECT\" failed: $(jq -c '.errors' <<<"$project")" >&2
+  exit 1
+fi
+TARGET=$(jq -r '.result.subdomain // empty' <<<"$project")
+if [ -z "$TARGET" ] || [ "$TARGET" = "null" ]; then
+  echo "read pages project \"$PROJECT\" succeeded but API returned no subdomain; cannot determine CNAME target" >&2
+  exit 1
+fi
+echo "pages project $PROJECT: subdomain $TARGET"
+
 # 1. Pages custom domain
 domains=$(cf GET "/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects/$PROJECT/domains")
 ok "$domains" || { echo "list pages domains failed: $(jq -c '.errors' <<<"$domains")" >&2; exit 1; }
@@ -46,7 +57,7 @@ else
   echo "pages domain $HOST: added"
 fi
 
-# 2. DNS CNAME -> <project>.pages.dev (proxied)
+# 2. DNS CNAME -> project subdomain from Pages API (proxied)
 records=$(cf GET "/zones/$CLOUDFLARE_ZONE_ID/dns_records?name=$HOST")
 ok "$records" || { echo "list dns records failed: $(jq -c '.errors' <<<"$records")" >&2; exit 1; }
 existing=$(jq -r '.result[0] // empty | "\(.id) \(.type) \(.content)"' <<<"$records")

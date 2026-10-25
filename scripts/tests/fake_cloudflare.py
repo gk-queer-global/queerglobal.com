@@ -48,6 +48,19 @@ class Handler(BaseHTTPRequestHandler):
         if fail and f"{method} {url.path}".startswith(fail):
             return self._err("forced failure")
         path = url.path.removeprefix("/client/v4")
+        parts = path.strip("/").split("/")
+        if (
+            len(parts) == 5
+            and parts[0] == "accounts"
+            and parts[2] == "pages"
+            and parts[3] == "projects"
+            and method == "GET"
+        ):
+            name = parts[4]
+            if state.get("missing_project"):
+                return self._err("project not found", 404)
+            subdomain = state.get("subdomain", f"{name}.pages.dev")
+            return self._ok({"name": name, "subdomain": subdomain})
         if path.endswith("/domains"):
             if method == "GET":
                 return self._ok([{"name": n} for n in state["domains"]])
