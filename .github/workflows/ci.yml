@@ -55,8 +55,8 @@ jobs:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
-      STAGING_HOST: staging.queerglobal.grandkru.com
-      PAGES_PROJECT: qg-site
+      SITE_HOST: queerglobal.grandkru.com
+      PAGES_PROJECT: queerglobal-grandkru
     steps:
       - name: Require Cloudflare secrets
         run: |
@@ -74,7 +74,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy ${{ runner.temp }}/site --project-name qg-site --branch main
+          command: pages deploy ${{ runner.temp }}/site --project-name ${{ env.PAGES_PROJECT }} --branch main
       - name: Smoke test deployment URL
         env:
           DEPLOY_URL: ${{ steps.wrangler.outputs.deployment-url }}
@@ -86,7 +86,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           path: src
-      - name: Attach ${{ env.STAGING_HOST }} (Pages custom domain + DNS CNAME)
-        run: src/scripts/cf-pages-domain.sh "$PAGES_PROJECT" "$STAGING_HOST"
-      - name: Smoke test ${{ env.STAGING_HOST }}
-        run: curl -fsS -o /dev/null --retry 30 --retry-delay 10 --retry-all-errors -w "%{http_code} https://$STAGING_HOST/\n" "https://$STAGING_HOST/"
+      - name: Attach ${{ env.SITE_HOST }} (Pages custom domain + DNS CNAME)
+        run: src/scripts/cf-pages-domain.sh "$PAGES_PROJECT" "$SITE_HOST"
+      - name: Smoke test ${{ env.SITE_HOST }}
+        run: curl -fsS -o /dev/null --retry 30 --retry-delay 10 --retry-all-errors -w "%{http_code} https://$SITE_HOST/\n" "https://$SITE_HOST/"

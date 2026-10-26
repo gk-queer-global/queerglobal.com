@@ -46,6 +46,25 @@ class CfPagesDomainTest(unittest.TestCase):
         self.assertEqual(w[1]["body"]["type"], "CNAME")
         self.assertEqual(w[1]["body"]["content"], "app.pages.dev")
         self.assertTrue(w[1]["body"]["proxied"])
+        project_gets = [c for c in calls if c["method"] == "GET" and c["path"].endswith("/projects/app")]
+        self.assertEqual(len(project_gets), 1)
+
+    def test_cname_uses_api_subdomain_not_project_name(self):
+        """Project name can differ from the pages.dev hostname (e.g. renamed projects)."""
+        proc, calls = self.run_script(state={"subdomain": "actual-host.pages.dev"})
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        dns = [c for c in self.writes(calls) if "dns_records" in c["path"]][0]
+        self.assertEqual(dns["body"]["content"], "actual-host.pages.dev")
+
+    def test_missing_project_fails_loudly(self):
+        proc, _ = self.run_script(state={"missing_project": True})
+        self.assertEqual(proc.returncode, 1)
+        self.assertIn('read pages project "app" failed', proc.stderr)
+
+    def test_project_without_subdomain_fails(self):
+        proc, _ = self.run_script(state={"subdomain": ""})
+        self.assertEqual(proc.returncode, 1)
+        self.assertIn("no subdomain", proc.stderr)
 
     def test_idempotent_when_everything_exists(self):
         state = {"domains": [HOST],
