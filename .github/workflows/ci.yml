@@ -23,6 +23,13 @@ jobs:
         with:
           node-version: 22
       - run: npx --yes html-validate@9.7.1 "**/*.html"
+      - name: Reject absolute queerglobal.com internal links
+        run: |
+          if rg -q 'https://queerglobal\.com' --glob '*.html' .; then
+            echo '::error::HTML must not link to https://queerglobal.com; use root-relative paths instead.'
+            rg 'https://queerglobal\.com' --glob '*.html' .
+            exit 1
+          fi
 
   deploy-scripts:
     name: deploy scripts (shellcheck + integration tests)
