@@ -1,0 +1,86 @@
+name: Security scans
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gitleaks:
+    name: Secret scan (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install gitleaks
+        env:
+          GITLEAKS_VERSION: 8.24.2
+        run: |
+          set -euo pipefail
+          archive="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          base_url="https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}"
+          curl -sSfLo "$archive" "${base_url}/${archive}"
+          curl -sSfLo checksums.txt "${base_url}/gitleaks_${GITLEAKS_VERSION}_checksums.txt"
+          grep "$archive" checksums.txt | sha256sum -c -
+          tar -xzf "$archive"
+          sudo mv gitleaks /usr/local/bin/
+          gitleaks version
+      - name: Scan full git history
+        run: gitleaks detect --source . --verbose --redact
+
+  semgrep:
+    name: Code scan (semgrep)
+    runs-on: ubuntu-latest
+    container:
+      image: semgrep/semgrep@sha256:4121f6bfd7edcd66def51c571902ee1d3e727092319c1fb56595b36478bf034b # 1.110.0
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Run semgrep
+        env:
+          SEMGREP_RULES: p/default p/secrets p/javascript p/html p/owasp-top-ten
+        run: semgrep ci --error
+
+  npm-audit:
+    name: Dependency scan (npm audit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Detect npm manifest
+        id: npm
+        run: |
+          set -euo pipefail
+          if [ -f package.json ] || [ -f package-lock.json ] || [ -f npm-shrinkwrap.json ]; then
+            echo "has_manifest=true" >> "$GITHUB_OUTPUT"
+            echo "Found npm manifest; npm audit will run."
+          else
+            echo "has_manifest=false" >> "$GITHUB_OUTPUT"
+            echo "No package.json or lockfile; skipping npm audit."
+          fi
+      - name: Setup Node.js
+        if: steps.npm.outputs.has_manifest == 'true'
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+      - name: npm audit
+        if: steps.npm.outputs.has_manifest == 'true'
+        run: |
+          set -euo pipefail
+          if [ ! -f package-lock.json ] && [ ! -f npm-shrinkwrap.json ]; then
+            echo "No lockfile present; generating package-lock.json for audit only."
+            npm install --package-lock-only --ignore-scripts --no-fund --no-audit
+          fi
+          npm audit --audit-level=high
