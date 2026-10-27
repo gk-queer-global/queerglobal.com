@@ -26,12 +26,7 @@ jobs:
       - name: Staging password gate tests
         run: npm test
       - name: Reject absolute queerglobal.com internal links
-        run: |
-          if rg -q 'https://queerglobal\.com' --glob '*.html' .; then
-            echo '::error::HTML must not link to https://queerglobal.com; use root-relative paths instead.'
-            rg 'https://queerglobal\.com' --glob '*.html' .
-            exit 1
-          fi
+        run: bash scripts/reject-absolute-internal-links.sh
 
   deploy-scripts:
     name: deploy scripts (shellcheck + integration tests)
