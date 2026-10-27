@@ -220,10 +220,6 @@
     -ms-transform-origin: center;
     -webkit-transform-origin: center;
     transform-origin: center;
-      background-image: url("/assets/x4f55e7d0d74086a78092fea2f677bcd4.png");
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: cover;
       opacity: 1;
       cursor: default;
       margin-top: 0.00px;
@@ -234,7 +230,7 @@
       padding-right: 0.00px;
       padding-bottom: 0.00px;
       padding-left: 0.00px;
-      background-color: rgba(255, 255, 255, 0);
+      background-color: rgba(31, 31, 31, 1);
       border-bottom-color: rgba(112, 112, 112, 1);
       border-bottom-style: none;
       border-bottom-width: 1.00px;
@@ -268,10 +264,6 @@
     -ms-transform-origin: center;
     -webkit-transform-origin: center;
     transform-origin: center;
-      background-image: url("/assets/x6d90bb611bd936f1d1f0fe962671c41c.png");
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: cover;
       opacity: 1;
       cursor: default;
       margin-top: 0.00px;
@@ -282,7 +274,7 @@
       padding-right: 0.00px;
       padding-bottom: 0.00px;
       padding-left: 0.00px;
-      background-color: rgba(255, 255, 255, 0);
+      background-color: rgba(31, 31, 31, 1);
       border-bottom-color: rgba(112, 112, 112, 1);
       border-bottom-style: none;
       border-bottom-width: 1.00px;
@@ -316,10 +308,6 @@
     -ms-transform-origin: center;
     -webkit-transform-origin: center;
     transform-origin: center;
-      background-image: url("/assets/x22b95606666a0cbd569b343aa5fbe314.png");
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: cover;
       opacity: 1;
       cursor: default;
       margin-top: 0.00px;
@@ -330,7 +318,7 @@
       padding-right: 0.00px;
       padding-bottom: 0.00px;
       padding-left: 0.00px;
-      background-color: rgba(255, 255, 255, 0);
+      background-color: rgba(31, 31, 31, 1);
       border-bottom-color: rgba(112, 112, 112, 1);
       border-bottom-style: none;
       border-bottom-width: 1.00px;
