@@ -1,7 +1,7 @@
 # Security review: open queerglobal.com PRs (#5–#10)
 
 **Review date:** 2026-10-27 (UTC)  
-**Reviewer:** Cloud Agent security pass (Mark-requested, GKT-1651 scope for this repository)  
+**Reviewer:** Cloud Agent security pass (Mark-requested pre-merge review, Oct 27 2026)  
 **Site:** Cloudflare Pages project `queerglobal-grandkru` (production hostname `queerglobal-grandkru.pages.dev`; custom domain `queerglobal.grandkru.com` per product intent)
 
 ## Frameworks applied
