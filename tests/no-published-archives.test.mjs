@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 /** Same path names omitted from the static Pages upload as CI rsync. */
-const PUBLISH_EXCLUDED_NAMES = new Set(["scripts", "functions", "tests", "node_modules"]);
+const PUBLISH_EXCLUDED_NAMES = new Set(["scripts", "tests", "node_modules"]);
 
 const ARCHIVE_SUFFIXES = [".zip", ".tar", ".gz", ".tgz", ".7z", ".rar"];
 

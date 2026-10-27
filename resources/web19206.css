@@ -700,7 +700,7 @@
     -ms-transform-origin: center;
     -webkit-transform-origin: center;
     transform-origin: center;
-      background-image: url("assets/group1648.png");
+      background-image: url("/assets/group1648.png");
     background-position: center;
     background-repeat: no-repeat;
     background-size: cover;
@@ -2245,7 +2245,7 @@
     -ms-transform-origin: center;
     -webkit-transform-origin: center;
     transform-origin: center;
-      background-image: url("assets/rectangle1766.png");
+      background-image: url("/assets/rectangle1766.png");
     background-position: center;
     background-repeat: no-repeat;
     background-size: cover;
