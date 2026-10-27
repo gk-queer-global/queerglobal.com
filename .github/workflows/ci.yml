@@ -23,6 +23,8 @@ jobs:
         with:
           node-version: 22
       - run: npx --yes html-validate@9.7.1 "**/*.html"
+      - name: Staging password gate tests
+        run: npm test
       - name: Reject absolute queerglobal.com internal links
         run: |
           if rg -q 'https://queerglobal\.com' --glob '*.html' .; then
@@ -65,8 +67,8 @@ jobs:
             exit 1
           fi
       - uses: actions/checkout@v4
-      - name: Stage site (repo root without dotfiles and scripts)
-        run: rsync -a --exclude='.*' --exclude=scripts ./ "$RUNNER_TEMP/site/"
+      - name: Stage site (repo root without dotfiles, scripts, Functions source and tests)
+        run: rsync -a --exclude='.*' --exclude=scripts --exclude=functions --exclude=tests --exclude=package.json ./ "$RUNNER_TEMP/site/"
       - name: Ensure Pages project exists
         run: npx --yes wrangler@3 pages project create "$PAGES_PROJECT" --production-branch main || echo "project already exists"
       - id: wrangler
