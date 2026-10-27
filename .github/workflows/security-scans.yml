@@ -52,12 +52,25 @@ jobs:
       - name: Run semgrep (full repository)
         run: |
           set -euo pipefail
+          results_file="${RUNNER_TEMP}/semgrep-results.json"
+          set +e
           semgrep scan \
             --config p/default \
             --config p/secrets \
             --config p/javascript \
             --config p/owasp-top-ten \
-            --error
+            --error \
+            --metrics=off \
+            --json-output="${results_file}" \
+            >/dev/null 2>&1
+          semgrep_exit=$?
+          set -e
+          if [ -s "${results_file}" ]; then
+            python3 -c "import json,sys; data=json.load(open(sys.argv[1], encoding='utf-8')); results=data.get('results') or []; print('Semgrep completed with no findings.') if not results else print('Semgrep findings (%d); rule, path, and line only:' % len(results)); [print('  - %s @ %s:%s' % (item.get('check_id', 'unknown'), item.get('path', 'unknown'), (item.get('start') or {}).get('line', '?'))) for item in results]" "${results_file}"
+          else
+            echo "Semgrep produced no results file."
+          fi
+          exit "${semgrep_exit}"
 
   npm-audit:
     name: Dependency scan (npm audit)

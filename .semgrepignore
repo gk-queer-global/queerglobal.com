@@ -1,0 +1,3 @@
+# Include CI test trees excluded by Semgrep's built-in default ignore (tests/, test/).
+!tests/
+!scripts/tests/
