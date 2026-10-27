@@ -66,7 +66,7 @@ jobs:
           semgrep_exit=$?
           set -e
           if [ -s "${results_file}" ]; then
-            python3 -c "import json,sys; data=json.load(open(sys.argv[1], encoding='utf-8')); results=data.get('results') or []; print('Semgrep completed with no findings.') if not results else print('Semgrep findings (%d); rule, path, and line only:' % len(results)); [print('  - %s @ %s:%s' % (item.get('check_id', 'unknown'), item.get('path', 'unknown'), (item.get('start') or {}).get('line', '?'))) for item in results]" "${results_file}"
+            python3 -c "import json,sys; data=json.load(open(sys.argv[1], encoding='utf-8')); results=data.get('results') or []; errors=data.get('errors') or []; print('Semgrep completed with no findings.') if not results else print('Semgrep findings (%d); rule, path, and line only:' % len(results)); [print('  - %s @ %s:%s' % (item.get('check_id', 'unknown'), item.get('path', 'unknown'), (item.get('start') or {}).get('line', '?'))) for item in results]; print('Semgrep errors: %d' % len(errors)); sys.exit(1) if errors else None" "${results_file}"
           else
             echo "Semgrep produced no results file."
           fi
