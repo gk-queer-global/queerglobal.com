@@ -52,7 +52,7 @@ jobs:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
-      STAGING_HOST: staging.queerglobal.grandkru.com
+      STAGING_HOST: queerglobal.staging.grandkru.com
       PAGES_PROJECT: queerglobal-grandkru
       QUEERGLOBAL_BASIC_AUTH_USER: ${{ secrets.QUEERGLOBAL_BASIC_AUTH_USER }}
       QUEERGLOBAL_BASIC_AUTH_PASS: ${{ secrets.QUEERGLOBAL_BASIC_AUTH_PASS }}
