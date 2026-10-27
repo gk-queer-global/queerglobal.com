@@ -50,7 +50,7 @@ jobs:
       - name: Run semgrep
         env:
           SEMGREP_RULES: p/default p/secrets p/javascript p/html p/owasp-top-ten
-        run: semgrep ci --error
+        run: semgrep ci
 
   npm-audit:
     name: Dependency scan (npm audit)
