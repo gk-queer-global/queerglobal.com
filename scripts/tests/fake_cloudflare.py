@@ -48,6 +48,22 @@ class Handler(BaseHTTPRequestHandler):
         if fail and f"{method} {url.path}".startswith(fail):
             return self._err("forced failure")
         path = url.path.removeprefix("/client/v4")
+        if "/pages/projects/" in path and not path.endswith("/domains"):
+            # GET /accounts/{id}/pages/projects/{name}
+            if method != "GET":
+                return self._err("method not allowed", 405)
+            project = path.rsplit("/", 1)[-1]
+            projects = state.get("projects", {})
+            if project not in projects:
+                return self._send(
+                    {
+                        "success": False,
+                        "errors": [{"code": 8000007, "message": "Project not found"}],
+                        "result": None,
+                    },
+                    404,
+                )
+            return self._ok({"name": project, **projects[project]})
         if path.endswith("/domains"):
             if method == "GET":
                 return self._ok([{"name": n} for n in state["domains"]])
