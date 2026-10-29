@@ -1,0 +1,43 @@
+"""HTTP server that returns 403 without Authorization (edge block) and 200 with valid Basic auth."""
+import base64
+import os
+import sys
+from http.server import BaseHTTPRequestHandler, HTTPServer
+
+USER = os.environ.get("TEST_USER", "u")
+PASS = os.environ.get("TEST_PASS", "p")
+
+
+class Handler(BaseHTTPRequestHandler):
+    def log_message(self, *args):
+        pass
+
+    def do_GET(self):
+        auth = self.headers.get("Authorization", "")
+        if not auth.startswith("Basic "):
+            self.send_response(403)
+            self.end_headers()
+            return
+        try:
+            decoded = base64.b64decode(auth[6:]).decode()
+        except Exception:
+            self.send_response(403)
+            self.end_headers()
+            return
+        if decoded != f"{USER}:{PASS}":
+            self.send_response(403)
+            self.end_headers()
+            return
+        body = b"<html><title>ok</title></html>"
+        self.send_response(200)
+        self.send_header("Content-Type", "text/html")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+
+if __name__ == "__main__":
+    server = HTTPServer(("127.0.0.1", 0), Handler)
+    print(server.server_address[1], flush=True)
+    sys.stdout.close()
+    server.serve_forever()

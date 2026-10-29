@@ -92,9 +92,7 @@ jobs:
           path: src
       - name: Attach ${{ env.STAGING_HOST }} (Pages custom domain + DNS CNAME)
         run: src/scripts/cf-pages-domain.sh "$PAGES_PROJECT" "$STAGING_HOST"
-      - name: Smoke test ${{ env.STAGING_HOST }}
+      - name: Smoke test ${{ env.STAGING_HOST }} (custom host gate)
         env:
-          BASIC_AUTH_USER: ${{ secrets.QUEERGLOBAL_BASIC_AUTH_USER }}
-          BASIC_AUTH_PASS: ${{ secrets.QUEERGLOBAL_BASIC_AUTH_PASS }}
-          SMOKE_PATHS: / /aboutus/ /blog/
-        run: bash scripts/smoke-basic-auth.sh "https://$STAGING_HOST"
+          SMOKE_PATHS: / /aboutus/ /blog/ /contactus/ /donations/ /resources/
+        run: bash scripts/smoke-staging-custom-host.sh "https://$STAGING_HOST"
