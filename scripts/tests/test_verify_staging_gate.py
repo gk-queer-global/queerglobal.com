@@ -9,9 +9,13 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 SCRIPT = os.path.join(HERE, "..", "smoke-staging-custom-host.sh")
 FAKE = os.path.join(HERE, "fake_edge_blocked_site.py")
 
+# Fake Basic-auth values for the local test HTTP server only.
+FAKE_GATE_USER = "u"
+FAKE_GATE_SECRET = "p"
+
 
 class VerifyStagingGateIntegrationTest(unittest.TestCase):
-    def start_fake(self, user="u", password="p"):
+    def start_fake(self, user, password):
         fake = subprocess.Popen(
             [sys.executable, "-I", FAKE],
             stdout=subprocess.PIPE,
@@ -36,7 +40,7 @@ class VerifyStagingGateIntegrationTest(unittest.TestCase):
         )
 
     def test_403_without_auth_passes_as_gated(self):
-        port = self.start_fake()
+        port = self.start_fake(FAKE_GATE_USER, FAKE_GATE_SECRET)
         proc = self.run_smoke(port)
         self.assertEqual(proc.returncode, 0, proc.stderr + proc.stdout)
         logs = [json.loads(line) for line in proc.stderr.splitlines() if line.startswith("{")]
