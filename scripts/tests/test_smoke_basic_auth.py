@@ -10,7 +10,7 @@ FAKE = os.path.join(HERE, "fake_basic_auth_site.py")
 
 
 class SmokeBasicAuthTest(unittest.TestCase):
-    def run_script(self, user="u", password="p"):
+    def run_script(self, user, password):
         fake = subprocess.Popen(
             [sys.executable, "-I", FAKE],
             stdout=subprocess.PIPE,
@@ -33,7 +33,7 @@ class SmokeBasicAuthTest(unittest.TestCase):
         return proc
 
     def test_happy_path(self):
-        proc = self.run_script()
+        proc = self.run_script("u", "p")
         self.assertEqual(proc.returncode, 0, proc.stderr + proc.stdout)
 
     def test_wrong_password_fails(self):

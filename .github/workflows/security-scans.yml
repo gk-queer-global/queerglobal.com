@@ -1,0 +1,107 @@
+name: Security scans
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gitleaks:
+    name: Secret scan (gitleaks)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install gitleaks
+        env:
+          GITLEAKS_VERSION: 8.30.1
+          GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+        run: |
+          set -euo pipefail
+          archive="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          base_url="https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}"
+          curl -sSfLo "$archive" "${base_url}/${archive}"
+          echo "${GITLEAKS_SHA256}  ${archive}" | sha256sum -c -
+          tar -xzf "$archive"
+          sudo mv gitleaks /usr/local/bin/
+          gitleaks version
+      - name: Scan full git history
+        run: gitleaks git --verbose --redact
+
+  semgrep:
+    name: Code scan (semgrep)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    container:
+      image: semgrep/semgrep@sha256:3db5c7af55eb1f512eac0abf0ab69a97b52c74b5e9a27314c221aee1a78d7ab2 # 1.181.1
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Run semgrep (full repository)
+        run: |
+          set -euo pipefail
+          results_file="${RUNNER_TEMP}/semgrep-results.json"
+          set +e
+          semgrep scan \
+            --config p/default \
+            --config p/secrets \
+            --config p/javascript \
+            --config p/owasp-top-ten \
+            --error \
+            --metrics=off \
+            --json-output="${results_file}" \
+            >/dev/null 2>&1
+          semgrep_exit=$?
+          set -e
+          if [ -s "${results_file}" ]; then
+            python3 -c "import json,sys; data=json.load(open(sys.argv[1], encoding='utf-8')); results=data.get('results') or []; errors=data.get('errors') or []; print('Semgrep completed with no findings.') if not results else print('Semgrep findings (%d); rule, path, and line only:' % len(results)); [print('  - %s @ %s:%s' % (item.get('check_id', 'unknown'), item.get('path', 'unknown'), (item.get('start') or {}).get('line', '?'))) for item in results]; print('Semgrep errors: %d' % len(errors)); sys.exit(1) if errors else None" "${results_file}"
+          else
+            echo "Semgrep produced no results file."
+          fi
+          exit "${semgrep_exit}"
+
+  npm-audit:
+    name: Dependency scan (npm audit)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Detect npm manifest
+        id: npm
+        run: |
+          set -euo pipefail
+          if [ -f package.json ] || [ -f package-lock.json ] || [ -f npm-shrinkwrap.json ]; then
+            echo "has_manifest=true" >> "$GITHUB_OUTPUT"
+            echo "Found npm manifest; npm audit will run."
+          else
+            echo "has_manifest=false" >> "$GITHUB_OUTPUT"
+            echo "No package.json or lockfile; skipping npm audit."
+          fi
+      - name: Setup Node.js
+        if: steps.npm.outputs.has_manifest == 'true'
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - name: npm audit
+        if: steps.npm.outputs.has_manifest == 'true'
+        run: |
+          set -euo pipefail
+          if [ ! -f package-lock.json ] && [ ! -f npm-shrinkwrap.json ]; then
+            echo "No lockfile present; generating package-lock.json for audit only."
+            npm install --package-lock-only --ignore-scripts --no-fund --no-audit
+          fi
+          npm audit --audit-level=high
