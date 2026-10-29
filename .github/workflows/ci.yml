@@ -18,8 +18,8 @@ jobs:
     name: HTML validity
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 22
       - run: npx --yes html-validate@9.7.1 "**/*.html"
@@ -32,8 +32,8 @@ jobs:
     name: deploy scripts (shellcheck + integration tests)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
           python-version: "3.12"
       - run: pip install shellcheck-py==0.11.0.1
@@ -52,7 +52,7 @@ jobs:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
-      STAGING_HOST: staging.queerglobal.grandkru.com
+      STAGING_HOST: queerglobal.staging.grandkru.com
       PAGES_PROJECT: queerglobal-grandkru
       QUEERGLOBAL_BASIC_AUTH_USER: ${{ secrets.QUEERGLOBAL_BASIC_AUTH_USER }}
       QUEERGLOBAL_BASIC_AUTH_PASS: ${{ secrets.QUEERGLOBAL_BASIC_AUTH_PASS }}
@@ -67,13 +67,13 @@ jobs:
             echo "::error::QUEERGLOBAL_BASIC_AUTH_USER / QUEERGLOBAL_BASIC_AUTH_PASS secrets are not set on this repo"
             exit 1
           fi
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - name: Stage site (static assets + Pages Functions middleware)
         run: rsync -a --exclude='.*' --exclude=scripts --exclude=tests --exclude=package.json ./ "$RUNNER_TEMP/site/"
       - name: Require Pages project (do not create)
         run: bash scripts/ensure-pages-project.sh "$PAGES_PROJECT"
       - id: wrangler
-        uses: cloudflare/wrangler-action@v3
+        uses: cloudflare/wrangler-action@9acf94ace14e7dc412b076f2c5c20b8ce93c79cd # v3.15.0
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -87,7 +87,7 @@ jobs:
         run: |
           echo "deployment: $DEPLOY_URL"
           bash scripts/smoke-basic-auth.sh "$DEPLOY_URL"
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           path: src
       - name: Attach ${{ env.STAGING_HOST }} (Pages custom domain + DNS CNAME)
